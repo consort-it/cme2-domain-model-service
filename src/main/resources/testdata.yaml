@@ -1,0 +1,103 @@
+swagger: "2.0"
+info:
+  description: "The feature toggle service manages feature toggle settings for the microservices in different environments. It can read the current settings as well as change them."
+  version: "1.0.0"
+  title: "feature-toggle-service"
+  contact:
+    email: "manuel.hiemer@consort-it.de"
+basePath: "/api/v1/feature-toggle-service"
+schemes:
+- "https"
+paths:
+  /{serviceName}:
+    parameters:
+    - name: "serviceName"
+      in: "path"
+      description: "the microservice name (simple format, without '-vX' suffix"
+      required: true
+      type: "string"
+    get:
+      operationId: "getFeatureToggles"
+      tags:
+        - "FeatureToggleBackend"
+      summary: "Get the environments with feature toggles for the given microservice."
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Returns all defined environments with their Feature-Toggles for the given microservice."
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Environment'
+  /{serviceName}/{envName}/{toggleName}:
+    parameters:
+    - name: "serviceName"
+      in: path
+      description: "the microservice name (simple format, without '-vX' suffix"
+      required: true
+      type: string
+    - name: "envName"
+      in: path
+      description: "the environment name for which to change the feature toggle"
+      required: true
+      type: string
+    - name: "toggleName"
+      in: path
+      description: "the feature toggle name whose value should be changed"
+      required: true
+      type: string
+    - name: "value"
+      in: body
+      description: "the new value of the feature toggle."
+      required: true
+      schema:
+        type: boolean
+    put:
+      operationId: "setFeatureToggle"
+      tags:
+        - "FeatureToggleBackend"
+      summary: "Sets a new value for a feature toggle in a specific environment."
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Returns all defined environments with their Feature-Toggles for the given microservice."
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Environment'
+  
+definitions:
+  Environment:
+    type: object
+    required:
+      - name
+      - toggles
+    properties:
+      name:
+        type: string
+        description: Name of the environment (e.g. dev, test, prod)
+        example: dev
+      toggles:
+        type: array
+        items:
+          $ref: '#/definitions/FeatureToggle'
+  FeatureToggle:
+    type: object
+    required:
+      - name
+      - description
+      - value
+    properties:
+      name:
+        type: string
+        description: Name of the FeatureToggle
+        example: Feature-A
+      description:
+        type: string
+        description: Description of the feature
+        example: Multiplies numbers
+      value:
+        type: boolean
+        description: Is this toggle activated or not

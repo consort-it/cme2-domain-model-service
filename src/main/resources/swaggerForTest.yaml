@@ -1,0 +1,209 @@
+swagger: '2.0'
+info:
+  description: "This is the gitlab adapter service of consort-group. It gets files from gitlab and returns them when api request are made."
+  version: "1.0.0"
+  title: "Gitlab Adapter"
+  contact:
+    email: "paul.krugel@consort-group.com"
+basePath: "/api/v1/gitlab-adapter"
+schemes:
+- http
+paths:
+  /{microservice-name}/content/{filepath}:
+    get:
+      tags:
+      - "content"
+      summary: "Get the raw content of the specified file"
+      description: "Querying this path the service returns the raw file defined by the filepath. If the file is found on many servers, then an array of raw files is returned."
+      operationId: "getFileAsRaw"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "microservice-name"
+        in: "path"
+        description: "The name of the project/microservice for which to get the file"
+        required: true
+        type: "string"
+      - name: "filepath"
+        in: "path"
+        description: "Defines which file to get. Whole path is necessary if file is inside directories."
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Status 200. Everything went fine. Get was successful"
+          schema:
+            $ref: "#/definitions/FileContent"
+        400:
+          description: "Something was wrong with the client request."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        403:
+          description: "The request did not contain a valid authentication header."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Something bad happened on the server."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /{microservice-name}/metadata:
+    get:
+      tags:
+      - "metadata"
+      summary: "Get the metadata about the at most last 20 commits"
+      description: "Returns the metadata for the specified repository."
+      operationId: "getMetadata"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "microservice-name"
+        in: "path"
+        description: "The name of the project/microservice for which to get the file"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Status 200. Everything went fine. Get was successful"
+          schema:
+            type: array
+            items:
+              - $ref: "#/definitions/GeneralMetadata"
+        400:
+          description: "Something was wrong with the client request."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        403:
+          description: "The request did not contain a valid authentication header."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Something bad happened on the server."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /{microservice-name}/metadata/{filepath}:
+    get:
+      tags:
+      - "metadata"
+      summary: "Get the metadata about the commit for the specified file"
+      description: "Returns the metadata for the specified file. The metadata contains information from the last commit made to this file."
+      operationId: "getMetadataForFile"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "microservice-name"
+        in: "path"
+        description: "The name of the project/microservice for which to get the file"
+        required: true
+        type: "string"
+      - name: "filepath"
+        in: "path"
+        description: "Defines which file to get. Whole path is necessary if file is inside directories."
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Status 200. Everything went fine. Get was successful"
+          schema:
+            $ref: "#/definitions/FileMetadata"
+        400:
+          description: "Something was wrong with the client request."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        403:
+          description: "The request did not contain a valid authentication header."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Something bad happened on the server."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /health:
+    get:
+      tags:
+      - "health"
+      summary: "Check the health of the timesheet service"
+      description: "If the health check returns back 'UP' then the service runs and is ok"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Everything is fine. Status is up"
+definitions:
+    FileContent:
+      description: "This objects represents the raw UTF-8 string of the content of the requested file"
+      type: string
+    GeneralMetadata:
+      description: "Metadata of a given object"
+      type: object
+      required:
+        - fileName
+      properties:
+        id:
+          type: string
+        short_id:
+          type: string
+        title:
+          type: string
+        created_at:
+          type: string
+        parent_ids:
+          type: array
+          items:
+            type: string
+        message:
+          type: string
+        author_name:
+          type: string
+        author_email:
+          type: string
+        authored_date:
+          type: string
+        committer_name:
+          type: string
+        committer_email:
+          type: string
+        committer_date:
+          type: string
+    FileMetadata:
+      description: "Metadata of a given object"
+      allOf:
+        - $ref: "#/definitions/GeneralMetadata"
+        - type: object
+          properties:
+            stats:
+              $ref: "#/definitions/Statistics"
+            status:
+              type: string
+            last_pipeline:
+              type: string
+            project_id:
+              type: integer
+    Statistics:
+      description: "Stats for file metadata"
+      type: object
+      required:
+        - additions
+        - deletions
+        - total
+      properties:
+        additions:
+          type: integer
+        deletions:
+          type: integer
+        total:
+          type: integer
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          pattern: '^MDS-\d+$'
+          description: "This error code should have the format 'MDS-XXX' where XXX is an integer. It is used to uniquely distinguish different error cases in order to display a suitable and translatable error message on the UI."
+          example: "MDS-1234"
+        message:
+          type: string
+          description: "Should contain a short, meaningful description of the error case. Might be displayed to the end user."
+          example: "Could not create service 'some-name' because this service already exists."

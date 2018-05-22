@@ -1,0 +1,28 @@
+{
+    "run": {
+        "default": "",
+        "items": [
+            {
+                "name": "domain-model-service",
+                "projectName": "domain-model-service",
+                "workingDirectory": "c:\\workspace\\cme2\\domain-model-service",
+                "args": [],
+                "vmargs": [],
+                "preLaunchTask": ""
+            }
+        ]
+    },
+    "debug": {
+        "default": "",
+        "items": [
+            {
+                "name": "domain-model-service",
+                "projectName": "domain-model-service",
+                "workingDirectory": "c:\\workspace\\cme2\\domain-model-service",
+                "args": [],
+                "vmargs": [],
+                "preLaunchTask": ""
+            }
+        ]
+    }
+}
